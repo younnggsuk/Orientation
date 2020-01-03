@@ -1,6 +1,6 @@
 # Orientation
 
-BNO055 센서를 이용한 선박의 방위 표시하기
+STM32F746G-DISCO에서 BNO055 센서를 이용해 선박의 방위 표시하기
 
 ## Documentation
 
