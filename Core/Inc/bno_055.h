@@ -32,11 +32,6 @@ typedef enum {
 } operating_mode;
 
 typedef enum {
-	EULER_DATA_DEGREE		= 0x00,
-	EULER_DATA_RADIAN		= 0x01
-} euler_data_mode;
-
-typedef enum {
       /* Page id register definition */
       BNO055_PAGE_ID_ADDR                                     = 0X07,
 
@@ -189,31 +184,24 @@ typedef enum {
 HAL_StatusTypeDef readData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, uint8_t len);
 HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t data, size_t data_len);
 
-uint8_t getChipId(I2C_HandleTypeDef *hi2c);
+uint8_t getChipId(I2C_HandleTypeDef *hi2c, uint8_t *buf);
+
+uint8_t getOperationMode(I2C_HandleTypeDef *hi2c, uint8_t *buf);
+uint8_t getOperationModeStr(I2C_HandleTypeDef *hi2c, char *buf);
+uint8_t setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t op_mode);
+
+uint8_t getCalibrationStatus(I2C_HandleTypeDef *hi2c, uint8_t* buf);
 
 uint8_t getAcceleration(I2C_HandleTypeDef *hi2c, short *buf);
 uint8_t getMagnetometer(I2C_HandleTypeDef *hi2c, short *buf);
 uint8_t getGyroscope(I2C_HandleTypeDef *hi2c, short *buf);
+uint8_t getEuler(I2C_HandleTypeDef *hi2c, short *euler_data);
 
-uint8_t getEuler(I2C_HandleTypeDef *hi2c, short *euler_data, uint8_t mode);
+uint8_t getAxisMap(I2C_HandleTypeDef *hi2c, uint8_t* buf);
+uint8_t setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis);
 
-//uint8_t getQuaternion(I2C_HandleTypeDef *hi2c, short *quaternion_data);
-//double getQuaternionPitch(short *quaternion_data);
-//double getQuaternionYaw(short *quaternion_data);
-//double getQuaternionRoll(short *quaternion_data);
+uint8_t getAxisSign(I2C_HandleTypeDef *hi2c, uint8_t* buf);
+uint8_t setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign);
 
-uint8_t getOperationMode(I2C_HandleTypeDef *hi2c);
-void setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t op_mode);
-
-uint8_t getCalibrationStatus(I2C_HandleTypeDef *hi2c);
-void PrintCalibrationStatus(uint8_t status);
-
-uint8_t getAxisMap(I2C_HandleTypeDef *hi2c);
-void setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis);
-
-uint8_t getAxisSign(I2C_HandleTypeDef *hi2c);
-void setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign);
-
-void PrintOperationMode(uint8_t mode);
 
 #endif /* INC_BNO_055_H_ */

@@ -7,9 +7,11 @@
 
 #include "main.h"
 #include "bno_055.h"
-#include <math.h>
 
-printf(PI);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 HAL_StatusTypeDef readData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, uint8_t len) {
 	data[0] = reg;
@@ -50,172 +52,211 @@ HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t data, 
 	return status;
 }
 
-uint8_t getChipId(I2C_HandleTypeDef *hi2c) {
-	uint8_t temp;
-	if(readData(hi2c, BNO055_CHIP_ID_ADDR, &temp, 1) != HAL_OK) {
+uint8_t getChipId(I2C_HandleTypeDef *hi2c, uint8_t *buf) {
+	if(readData(hi2c, BNO055_CHIP_ID_ADDR, buf, 1) != HAL_OK) {
 		printf("getChipId() error!\r\n");
 		return 0;
 	}
-	return temp;
+	return 1;
 }
 
-uint8_t getOperationMode(I2C_HandleTypeDef *hi2c) {
+uint8_t getOperationModeStr(I2C_HandleTypeDef *hi2c, char *buf) {
 	uint8_t temp;
 	if(readData(hi2c, BNO055_OPR_MODE_ADDR, &temp, 1) != HAL_OK) {
 		printf("getOperationMode() error!\r\n");
 		return 0;
 	}
-	return (temp&0X0F);
+
+	temp = (temp&0x0F);
+
+	switch(temp)
+	{
+		/* Config mode */
+		case OP_MODE_CONFIG_MODE:
+			sprintf(buf, "Mode : CONFIG MODE");
+			break;
+		/* Non-Fusion mode*/
+		case OP_MODE_ACC_ONLY:
+			sprintf(buf, "Mode : ACC ONLY");
+			break;
+		case OP_MODE_MAG_ONLY:
+			sprintf(buf, "Mode : MAG ONLY");
+			break;
+		case OP_MODE_GYRO_ONLY:
+			sprintf(buf, "Mode : GYRO ONLY");
+			break;
+		case OP_MODE_ACC_MAG:
+			sprintf(buf, "Mode : ACC MAG");
+			break;
+		case OP_MODE_ACC_GYRO:
+			sprintf(buf, "Mode : ACC GYRO");
+			break;
+		case OP_MODE_MAG_GYRO:
+			sprintf(buf, "Mode : MAG GYRO");
+			break;
+		case OP_MODE_AMG:
+			sprintf(buf, "Mode : AMG");
+			break;
+		/* Fusion mode */
+		case OP_MODE_IMU:
+			sprintf(buf, "Mode : IMU");
+			break;
+		case OP_MODE_COMPASS:
+			sprintf(buf, "Mode : COMPASS");
+			break;
+		case OP_MODE_M4G:
+			sprintf(buf, "Mode : M4G");
+			break;
+		case OP_MODE_NDOF_FMC_OFF:
+			sprintf(buf, "Mode : NDOF FMC OFF");
+			break;
+		case OP_MODE_NDOF:
+			sprintf(buf, "Mode : NDOF");
+			break;
+		default:
+			sprintf(buf, "Mode : ERROR");
+	}
+
+	return 1;
 }
 
-void setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t op_mode) {
+uint8_t getOperationMode(I2C_HandleTypeDef *hi2c, uint8_t *buf) {
+	if(readData(hi2c, BNO055_OPR_MODE_ADDR, buf, 1) != HAL_OK) {
+		printf("getOperationMode() error!\r\n");
+		return 0;
+	}
+	*buf = (*buf & 0x0F);
+
+	return 1;
+}
+
+uint8_t setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t op_mode) {
 	if(writeData(hi2c, BNO055_OPR_MODE_ADDR, op_mode, 1) != HAL_OK) {
 		printf("setOperatingMode() error!\r\n");
+		return 0;
 	}
+
+	return 1;
 }
 
 uint8_t getAcceleration(I2C_HandleTypeDef *hi2c, short *buf) {
 	uint8_t temp[6] = {0,};
-	if(readData(hi2c, BNO055_ACCEL_DATA_X_LSB_ADDR, temp, 6) == HAL_OK) {
-		for(int i=0; i<3; i++) {
-			buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
-		}
-		return 1;
+
+	if(readData(hi2c, BNO055_ACCEL_DATA_X_LSB_ADDR, temp, 6) != HAL_OK) {
+		printf("getAcceleration() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	for(int i=0; i<3; i++) {
+		buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
+	}
+
+	return 1;
+
 }
 
 uint8_t getMagnetometer(I2C_HandleTypeDef *hi2c, short *buf) {
 	uint8_t temp[6] = {0,};
-	if(readData(hi2c, BNO055_MAG_DATA_X_LSB_ADDR, temp, 6) == HAL_OK) {
-		for(int i=0; i<3; i++) {
-			buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
-		}
-		return 1;
+
+	if(readData(hi2c, BNO055_MAG_DATA_X_LSB_ADDR, temp, 6) != HAL_OK) {
+		printf("getMagnetometer() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	for(int i=0; i<3; i++) {
+		buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
+	}
+
+	return 1;
+
 }
 
 uint8_t getGyroscope(I2C_HandleTypeDef *hi2c, short *buf) {
 	uint8_t temp[6] = {0,};
-	if(readData(hi2c, BNO055_GYRO_DATA_X_LSB_ADDR, temp, 6) == HAL_OK) {
-		for(int i=0; i<3; i++) {
-			buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
-		}
-		return 1;
+
+	if(readData(hi2c, BNO055_GYRO_DATA_X_LSB_ADDR, temp, 6) != HAL_OK) {
+		printf("getMagnetometer() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	for(int i=0; i<3; i++) {
+		buf[i] = ( (temp[i*2+1] << 8) | temp[i*2] );
+	}
+
+	return 1;
 }
 
-uint8_t getEuler(I2C_HandleTypeDef *hi2c, short *euler_data, uint8_t mode) {
+uint8_t getEuler(I2C_HandleTypeDef *hi2c, short *euler_data) {
 	uint8_t temp[6] = {0,};
 
-	if(readData(hi2c, BNO055_EULER_H_LSB_ADDR, temp, 6) == HAL_OK) {
-		for(int i=0; i<3; i++) {
-			euler_data[i] = (short)( (temp[i*2+1] << 8) | temp[i*2] );
-		}
-
-		if(mode == EULER_DATA_DEGREE) {
-			euler_data[0] /= 16;
-			euler_data[1] /= 16;
-			euler_data[2] /= 16;
-		} else {// EULER_DATA_RADIAN
-			euler_data[0] /= 900;
-			euler_data[1] /= 900;
-			euler_data[2] /= 900;
-		}
-
-		return 1;
+	if(readData(hi2c, BNO055_EULER_H_LSB_ADDR, temp, 6) != HAL_OK) {
+		printf("getEuler() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	for(int i=0; i<3; i++) {
+		euler_data[i] = (short)( (temp[i*2+1] << 8) | temp[i*2] );
+	}
+	// EULER_DATA_DEGREE
+	euler_data[0] /= 16;
+	euler_data[1] /= 16;
+	euler_data[2] /= 16;
+
+	return 1;
 }
 
-//uint8_t getQuaternion(I2C_HandleTypeDef *hi2c, short *quaternion_data) {
-//	uint8_t temp[8] = {0,};
-//
-//	if(readData(hi2c, BNO055_QUATERNION_DATA_W_LSB_ADDR, temp, 8) == HAL_OK) {
-//		for(int i=0; i<4; i++) {
-//			quaternion_data[i] = (short)( (temp[i*2+1] << 8) | temp[i*2] );
-//		}
-//		quaternion_data[0] /= 2^14; // w
-//		quaternion_data[1] /= 2^14; // x
-//		quaternion_data[2] /= 2^14; // y
-//		quaternion_data[3] /= 2^14; // z
-//
-//		return 1;
-//	}
-//	return 0;
-//}
-//
-//double getQuaternionPitch(short *quaternion_data) {
-//	double val_1 = 2.0 * ( quaternion_data[0] * quaternion_data[1] + quaternion_data[2] * quaternion_data[3] );
-//	double val_2 = 1.0 - 2.0 * (quaternion_data[1] * quaternion_data[1] + quaternion_data[2] * quaternion_data[2]);
-//
-//	double roll = atan2(val_1, val_2);
-//
-//	return roll * (180.0 / M_PI);
-//}
-//
-//double getQuaternionYaw(short *quaternion_data) {
-//	double val = 2.0 * ( quaternion_data[0] * quaternion_data[2] - quaternion_data[3] * quaternion_data[1] );
-//	val = (val > 1.0) ? 1.0 : val;
-//	val = (val < -1.0) ? -1.0 : val;
-//
-//	double pitch = asin(val);
-//
-//	return pitch * (180.0 / M_PI);
-//}
-//
-//double getQuaternionRoll(short *quaternion_data) {
-//	double val_1 = 2.0 * ( quaternion_data[0] * quaternion_data[3] + quaternion_data[1] * quaternion_data[2] );
-//	double val_2 = 1.0 - 2.0 * (quaternion_data[2] * quaternion_data[2] + quaternion_data[3] * quaternion_data[3]);
-//
-//	double yaw = atan2(val_1, val_2);
-//
-//	return yaw * (180.0 / M_PI);
-//}
-
-uint8_t getCalibrationStatus(I2C_HandleTypeDef *hi2c) {
+uint8_t getCalibrationStatus(I2C_HandleTypeDef *hi2c, uint8_t* buf) {
 	uint8_t temp;
-	if(readData(hi2c, BNO055_CALIB_STAT_ADDR, &temp, 1) == HAL_OK) {
-		return temp;
+	if(readData(hi2c, BNO055_CALIB_STAT_ADDR, &temp, 1) != HAL_OK) {
+		printf("getCalibrationStatus() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	/*
+	 * 0 : Not Calibrated, 3 : Fully Calibrated
+	 */
+	buf[0] = (temp & 0x03);			// MAG
+	buf[1] = ( (temp >> 2) & 0x03 );	// ACC
+	buf[2] = ( (temp >> 4) & 0x03 );	// GYR
+	buf[3] = ( (temp >> 6) & 0x03 );	// SYS
+
+	return 1;
 }
 
-uint8_t getAxisMap(I2C_HandleTypeDef *hi2c) {
-	uint8_t temp;
-	if(readData(hi2c, BNO055_AXIS_MAP_CONFIG_ADDR, &temp, 1) == HAL_OK) {
-		return temp;
+uint8_t getAxisMap(I2C_HandleTypeDef *hi2c, uint8_t* buf) {
+	if(readData(hi2c, BNO055_AXIS_MAP_CONFIG_ADDR, buf, 1) != HAL_OK) {
+		printf("getAxisMap() error!\r\n");
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
-void setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis) {
+uint8_t setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis) {
 	if(writeData(hi2c, BNO055_AXIS_MAP_CONFIG_ADDR, axis, 1) != HAL_OK) {
 		printf("setAxisMap() error!\r\n");
-	}
-}
-
-uint8_t getAxisSign(I2C_HandleTypeDef *hi2c) {
-	uint8_t temp;
-	if(readData(hi2c, BNO055_AXIS_MAP_SIGN_ADDR, &temp, 1) == HAL_OK) {
-		return temp;
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
-void setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign) {
+uint8_t getAxisSign(I2C_HandleTypeDef *hi2c, uint8_t* buf) {
+	if(readData(hi2c, BNO055_AXIS_MAP_SIGN_ADDR, buf, 1) != HAL_OK) {
+		printf("setAxisMap() error!\r\n");
+		return 0;
+	}
+
+	return 1;
+}
+
+uint8_t setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign) {
 	if(writeData(hi2c, BNO055_AXIS_MAP_SIGN_ADDR, sign, 1) != HAL_OK) {
 		printf("setAxisSign() error!\r\n");
+		return 0;
 	}
+
+	return 1;
 }
 
 void PrintCalibrationStatus(uint8_t status) {
@@ -227,56 +268,4 @@ void PrintCalibrationStatus(uint8_t status) {
 	cal_status[3] = ( (status >> 6) & 0x03 );
 
 	printf("CALIB_STATUS : MAG=%d, ACC=%d, GYR=%d SYS=%d\r\n", cal_status[0], cal_status[1], cal_status[2], cal_status[3]);
-}
-
-void PrintOperationMode(uint8_t mode) {
-	switch(mode) {
-	/* Config mode */
-	case OP_MODE_CONFIG_MODE:
-		printf("Current Mode is CONFIG_MODE\r\n");
-		break;
-
-	/* Non-Fusion mode*/
-    case OP_MODE_ACC_ONLY:
-		printf("Current Mode is ACC_ONLY\r\n");
-		break;
-	case OP_MODE_MAG_ONLY:
-		printf("Current Mode is MAG_ONLY\r\n");
-		break;
-	case OP_MODE_GYRO_ONLY:
-		printf("Current Mode is GYRO_ONLY\r\n");
-		break;
-	case OP_MODE_ACC_MAG:
-		printf("Current Mode is ACC_MAG\r\n");
-		break;
-	case OP_MODE_ACC_GYRO:
-		printf("Current Mode is ACC_GYRO\r\n");
-		break;
-	case OP_MODE_MAG_GYRO:
-		printf("Current Mode is MAG_GYRO\r\n");
-		break;
-	case OP_MODE_AMG:
-		printf("Current Mode is AMG\r\n");
-		break;
-
-	/* Fusion mode */
-	case OP_MODE_IMU:
-		printf("Current Mode is IMU\r\n");
-		break;
-	case OP_MODE_COMPASS:
-		printf("Current Mode is COMPASS\r\n");
-		break;
-	case OP_MODE_M4G:
-		printf("Current Mode is M4G\r\n");
-		break;
-	case OP_MODE_NDOF_FMC_OFF:
-		printf("Current Mode is NDOF_FMC_OFF\r\n");
-		break;
-	case OP_MODE_NDOF:
-		printf("Current Mode is NDOF\r\n");
-		break;
-
-	default:
-		printf("No Mode listed\r\n");
-	}
 }

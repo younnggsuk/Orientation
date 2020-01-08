@@ -6,13 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
   *
   ******************************************************************************
   */
@@ -56,8 +56,10 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern I2C_HandleTypeDef hi2c1;
-extern UART_HandleTypeDef huart1;
+extern DMA2D_HandleTypeDef hdma2d;
+extern LTDC_HandleTypeDef hltdc;
+extern TIM_HandleTypeDef htim6;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -177,20 +179,6 @@ void PendSV_Handler(void)
   /* USER CODE END PendSV_IRQn 1 */
 }
 
-/**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
-  /* USER CODE BEGIN SysTick_IRQn 0 */
-
-  /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
-}
-
 /******************************************************************************/
 /* STM32F7xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
@@ -199,45 +187,45 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles I2C1 event interrupt.
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
   */
-void I2C1_EV_IRQHandler(void)
+void TIM6_DAC_IRQHandler(void)
 {
-  /* USER CODE BEGIN I2C1_EV_IRQn 0 */
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
 
-  /* USER CODE END I2C1_EV_IRQn 0 */
-  HAL_I2C_EV_IRQHandler(&hi2c1);
-  /* USER CODE BEGIN I2C1_EV_IRQn 1 */
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
-  /* USER CODE END I2C1_EV_IRQn 1 */
+  /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /**
-  * @brief This function handles I2C1 error interrupt.
+  * @brief This function handles LTDC global interrupt.
   */
-void I2C1_ER_IRQHandler(void)
+void LTDC_IRQHandler(void)
 {
-  /* USER CODE BEGIN I2C1_ER_IRQn 0 */
+  /* USER CODE BEGIN LTDC_IRQn 0 */
 
-  /* USER CODE END I2C1_ER_IRQn 0 */
-  HAL_I2C_ER_IRQHandler(&hi2c1);
-  /* USER CODE BEGIN I2C1_ER_IRQn 1 */
+  /* USER CODE END LTDC_IRQn 0 */
+  HAL_LTDC_IRQHandler(&hltdc);
+  /* USER CODE BEGIN LTDC_IRQn 1 */
 
-  /* USER CODE END I2C1_ER_IRQn 1 */
+  /* USER CODE END LTDC_IRQn 1 */
 }
 
 /**
-  * @brief This function handles USART1 global interrupt.
+  * @brief This function handles DMA2D global interrupt.
   */
-void USART1_IRQHandler(void)
+void DMA2D_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART1_IRQn 0 */
+  /* USER CODE BEGIN DMA2D_IRQn 0 */
 
-  /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
+  /* USER CODE END DMA2D_IRQn 0 */
+  HAL_DMA2D_IRQHandler(&hdma2d);
+  /* USER CODE BEGIN DMA2D_IRQn 1 */
 
-  /* USER CODE END USART1_IRQn 1 */
+  /* USER CODE END DMA2D_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
