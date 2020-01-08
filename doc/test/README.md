@@ -2,7 +2,14 @@
 
 ### 센서 배치에 따른 Heading, Roll, Pitch 값 변화
 
-![heading](./heading_2.png) ![roll](./roll_2.png) ![pitch](./pitch_2.png) 
+
+![heading](./heading_2.png)
+
+ ![roll](./roll_2.png)
+
+ ![pitch](./pitch_2.png)
+
+ 
 
 
 
@@ -21,13 +28,7 @@
 
 
 
-### Calibration
-
-
-
-
-
-### TEST 결과
+### 기타 TEST
 
 - 센서 옆 자석 배치 후 30분이상 경과 후 값 변화 없었음
 
