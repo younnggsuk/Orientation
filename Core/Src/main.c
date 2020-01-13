@@ -142,6 +142,7 @@ int _write(int32_t file, uint8_t *ptr, int32_t len) {
   HAL_UART_Transmit(&huart1, ptr, len, 10);
   return len;
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -151,19 +152,29 @@ int _write(int32_t file, uint8_t *ptr, int32_t len) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint8_t op_mode;
+
+  uint8_t chip_id = 0;
   uint8_t cal_status[4] = {0,};
-  short euler_data[3] = {0,};
+  uint16_t cal_profile[11] = {0,};
 
   char str_opmode[20] = {0,};
+
+  short euler_data[3] = {0,};
 
   char str_heading[20] = {0,};
   char str_roll[20] = {0,};
   char str_pitch[20] = {0,};
 
-  char str_mag[20] = {0,};
   char str_acc[20] = {0,};
   char str_gyr[20] = {0,};
+  char str_mag[20] = {0,};
+
+  char str_cal_offset_acc[40] = {0,};
+  char str_cal_offset_mag[40] = {0,};
+  char str_cal_offset_gyr[40] = {0,};
+  char str_cal_radius_acc[40] = {0,};
+  char str_cal_radius_mag[40] = {0,};
+
   /* USER CODE END 1 */
   
 
@@ -207,6 +218,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+
   BSP_LCD_Init();
 
   BSP_LCD_LayerRgb565Init(0, LCD_FB_START_ADDRESS);
@@ -218,15 +230,19 @@ int main(void)
   BSP_LCD_SetTextColor(RGB565_WHITE);
   BSP_LCD_SetBackColor(RGB565_BLACK);
   BSP_LCD_SetFont(&Font24);
-  BSP_LCD_DisplayStringAt(0, 0, (uint8_t *)"BNO 055", CENTER_MODE);
 
-  BSP_LCD_SetFont(&Font24);
-
-  if(getOperationMode(&hi2c1, &op_mode)) {
-	  if(op_mode == OP_MODE_CONFIG_MODE) {
-		  setOperationMode(&hi2c1, OP_MODE_NDOF);
+  BSP_LCD_DisplayStringAt(0, 110, (uint8_t *)"Device Initializing...", CENTER_MODE);
+  while(1) {
+	  getChipId(&hi2c1, &chip_id);
+	  if(chip_id == BNO_055_CHIP_ID) {
+		  break;
 	  }
+	  HAL_Delay(100);
   }
+
+  loadCalibrationProfile(&hrtc, cal_profile);
+  // OFFSET, radius write
+  ChangeOperationModeTo(&hi2c1, OP_MODE_NDOF);
 
   /* USER CODE END 2 */
 
@@ -235,33 +251,50 @@ int main(void)
   while (1)
   {
 	BSP_LCD_Clear(RGB565_BLACK);
+	BSP_LCD_SetFont(&Font24);
 	BSP_LCD_DisplayStringAt(0, 0, (uint8_t *)"BNO 055", CENTER_MODE);
 
-	if(getOperationModeStr(&hi2c1, str_opmode)) {
-		BSP_LCD_DisplayStringAt(0, 50, (uint8_t*)str_opmode, LEFT_MODE);
+    BSP_LCD_SetFont(&Font16);
+	getOperationModeStr(&hi2c1, str_opmode);
+	BSP_LCD_DisplayStringAt(0, 50, (uint8_t*)str_opmode, LEFT_MODE);
+
+	getEuler(&hi2c1, euler_data);
+	sprintf(str_heading, "Heading %4d", euler_data[0]);
+	sprintf(str_roll, "Roll    %4d", euler_data[1]);
+	sprintf(str_pitch, "Pitch   %4d", euler_data[2]);
+
+	BSP_LCD_DisplayStringAt(0, 70, (uint8_t*)str_heading, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 90, (uint8_t*)str_roll, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 110, (uint8_t*)str_pitch, LEFT_MODE);
+
+	getCalibrationStatus(&hi2c1, cal_status);
+	sprintf(str_acc, "ACC %d", cal_status[1]);
+	sprintf(str_mag, "MAG %d", cal_status[0]);
+	sprintf(str_gyr, "GYR %d", cal_status[2]);
+
+	BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)str_acc, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(70, 130, (uint8_t*)str_mag, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(140, 130, (uint8_t*)str_gyr, LEFT_MODE);
+
+	BSP_LCD_SetFont(&Font12);
+
+	sprintf(str_cal_offset_acc, "A_OFFSET X %d, Y %d, Z %d", (short)cal_profile[0], (short)cal_profile[1], (short)cal_profile[2]);
+	sprintf(str_cal_offset_mag, "M_OFFSET X %d, Y %d, Z %d", (short)cal_profile[3], (short)cal_profile[4], (short)cal_profile[5]);
+	sprintf(str_cal_offset_gyr, "G_OFFSET X %d, Y %d, Z %d", (short)cal_profile[6], (short)cal_profile[7], (short)cal_profile[8]);
+	sprintf(str_cal_radius_acc, "A_RADIUS %d", (short)cal_profile[9]);
+	sprintf(str_cal_radius_mag, "M_RADIUS %d", (short)cal_profile[10]);
+
+	BSP_LCD_DisplayStringAt(0, 150, (uint8_t*)str_cal_offset_acc, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 170, (uint8_t*)str_cal_offset_mag, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 190, (uint8_t*)str_cal_offset_gyr, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 210, (uint8_t*)str_cal_radius_acc, LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 230, (uint8_t*)str_cal_radius_mag, LEFT_MODE);
+
+	if(getCalibrationProfile(&hi2c1, cal_status, cal_profile)) {
+		saveCalibrationProfile(&hrtc, cal_profile);
 	}
 
-	if(getEuler(&hi2c1, euler_data)) {
-		sprintf(str_heading, "Heading %4d", euler_data[0]);
-		sprintf(str_roll, "Roll    %4d", euler_data[1]);
-		sprintf(str_pitch, "Pitch   %4d", euler_data[2]);
-
-		BSP_LCD_DisplayStringAt(0, 100, (uint8_t*)str_heading, LEFT_MODE);
-		BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)str_roll, LEFT_MODE);
-		BSP_LCD_DisplayStringAt(0, 160, (uint8_t*)str_pitch, LEFT_MODE);
-	}
-
-	if(getCalibrationStatus(&hi2c1, cal_status)) {
-		sprintf(str_mag, "MAG %d", cal_status[0]);
-		sprintf(str_acc, "ACC %d", cal_status[1]);
-		sprintf(str_gyr, "GYR %d", cal_status[2]);
-
-		BSP_LCD_DisplayStringAt(0, 210, (uint8_t*)str_mag, LEFT_MODE);
-		BSP_LCD_DisplayStringAt(100, 210, (uint8_t*)str_acc, LEFT_MODE);
-		BSP_LCD_DisplayStringAt(200, 210, (uint8_t*)str_gyr, LEFT_MODE);
-	}
-
-    HAL_Delay(1000);
+	HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
