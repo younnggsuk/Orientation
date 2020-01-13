@@ -131,7 +131,7 @@ Non-absolute orientation(relative orientation) mode에서는 처음 센서가 �
 
 **IMU (Inertial Measurement Unit)**
 
-IMU 모드에서 non-absolute orientation(relative orientation)은 
+IMU 모드에서 non-absolute orientation(relative orientation)은 accelerometer와 gyroscope 데이터에 의해 계산된다. 계산은 빠르게 이루어진다. (high output data rate)
 
 **COMPASS**
 

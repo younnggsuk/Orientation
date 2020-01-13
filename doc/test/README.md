@@ -3,11 +3,11 @@
 ### 센서 배치에 따른 Heading, Roll, Pitch 값 변화
 
 
-![heading](./heading_2.png)
+![heading](./heading.png)
 
- ![roll](./roll_2.png)
+ ![roll](./roll.png)
 
- ![pitch](./pitch_2.png)
+ ![pitch](./pitch.png)
 
  
 
