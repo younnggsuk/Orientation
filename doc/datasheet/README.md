@@ -131,23 +131,33 @@ Non-absolute orientation(relative orientation) mode에서는 처음 센서가 �
 
 **IMU (Inertial Measurement Unit)**
 
-IMU 모드에서 non-absolute orientation(relative orientation)은 accelerometer와 gyroscope 데이터에 의해 계산된다. 계산은 빠르게 이루어진다. (high output data rate)
+IMU 모드에서 non-absolute orientation(relative orientation)은 accelerometer와 gyroscope 데이터에 의해 계산된다. 계산은 빠르게 이루어 진다. (즉, high output data rate)
 
 **COMPASS**
 
-gyroscope만 켜지며, 사용자는 이 1가지 센서에서만 값을 읽을 수 있다.
+COMPASS mode는 지구 자기장을 측정하고 지리적 방향을 계산하기 위한 모드이다.
+
+지구 자기장은 수평 성분 X, Y, 수직성분 Z를 가진 벡터이며 지구상의 위치와 natural iron의 발생에 따라 다르다. heading의 계산(나침반의 방향)에는 수평 구성요소인 X, Y만 사용된다. 따라서 지구 자기장 벡터의 구성요소는 수평면에서 변환되어야 하며 이를 위해서는 중력 벡터의 방향에 대한 정보가 필요하다. 요약하면, heading은 중력과 자기장을 동시에 고려할 때에만 계산할 수 있다.
+
+하지만 측정 정확도는 주변 자기장의 안정도에 따라 다르다. 또한, 지구 자기장은 일반적으로 전자 장비 주변과 내부에서 발생하는 자기장보다 훨씬 작기 때문에, 이 모드에서는 교정이 필요하다.
 
 **M4G (Magnet for Gyroscope)**
 
-accelerometer와 magnetometer가 켜지며, 사용자는 이 2가지 센서에서만 값을 읽을 수 있다.
+M4G 모드는 IMU 모드와 유사하지만, 회전을 감지하기 위해 gyroscope의 신호를 사용하는 것 대신에 자기장에서 magnetometer의 방향 변경이 사용된다. magnetometer는 gyroscope보다 전력 소비가 훨씬 적기 때문에, IMU 모드에 비해 전력 소비가 적다. 이 모드에서는 gyroscope의 drift effect가 없다. 
+
+하지만 COMPASS mode의 경우, 측정 정확도가 주변 자기장의 안정도에 따라 다르다.
+
+이 모드에서는 magnetometer의 calibration이 필요하지 않으며 또한 사용할 수 없다.
 
 **NDOF_FMC_OFF**
 
-accelerometer와 gyroscope가 켜지며, 사용자는 이 2가지 센서에서만 값을 읽을 수 있다.
+Fast Magnetometer Calibration이 꺼진 점만 제외하고는 NDOF 모드와 동일하다.
 
 **NDOF**
 
-magnetometer와 gyroscope가 켜지며, 사용자는 이 2가지 센서에서만 값을 읽을 수 있다.
+NDOF 모드는 accelerometer, gyroscope, magnetometer에서 융합된 absolute orientation 데이터가 계산되는 9 degrees of freedom(9 자유도) 모드이다.
+
+3가지 센서를 모두 결합하면, 빠른 계산에 따른 출력 데이터의 속도가 높아지고, 자기장 왜곡으로부터 견고성이 향상된다는 장점이 있다.이 모드에서는 Fast Magnetometer Calibration이 켜져서 빠른 교정과 높은 데이터 정확도를 제공한다. 전류 소비는 NDOF_FMC_OFF 모드에 비해 약간 높다.
 
 
 
