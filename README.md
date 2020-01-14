@@ -1,6 +1,13 @@
 # Orientation
 
-STM32F746G-DISCO에서 BNO055 센서를 이용해 선박의 방위 표시하기
+BOSCH의 BNO055 센서의 Absolute Orientation을 사용해 heading 값 출력
+
+
+
+## Environment
+
+- STM32F746G-DISCO
+- STM32CubeIDE 1.2.0
 
 
 
