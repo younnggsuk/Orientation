@@ -8,6 +8,8 @@
 #ifndef INC_BNO_055_H_
 #define INC_BNO_055_H_
 
+#include "main.h"
+
 #define BNO_055_DEVICE_ADDRESS	0x28
 
 #define BNO_055_CHIP_ID			0XA0
@@ -183,33 +185,41 @@ typedef enum {
 } bno055_registers;
 
 
-HAL_StatusTypeDef readData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, uint8_t len);
-HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t data, size_t data_len);
+typedef struct {
+	uint8_t chip_id;
+	uint8_t opmode;
+	uint8_t cal_status[4];
+	uint16_t cal_profile[11];
+	short euler_data[3];
+} bno055_t;
 
-void getChipId(I2C_HandleTypeDef *hi2c, uint8_t *chip);
+
+HAL_StatusTypeDef readData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, uint8_t len);
+HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, size_t data_len);
+
+void BNO055_Initialization(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno055_t *bno055);
+void BNO055_Update(I2C_HandleTypeDef *hi2c, bno055_t *bno055);
+
+void getChipId(I2C_HandleTypeDef *hi2c, uint8_t *chip_id);
 
 void getOperationMode(I2C_HandleTypeDef *hi2c, uint8_t *opmode);
-void getOperationModeStr(I2C_HandleTypeDef *hi2c, char *opmode_str);
-void setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t opmode);
+void setOperationMode(I2C_HandleTypeDef *hi2c, uint8_t *cur_opmode, uint8_t opmode);
+void ChangeOperationModeTo(I2C_HandleTypeDef *hi2c, bno055_t *bno055, uint8_t opmode);
 
-void getAcceleration(I2C_HandleTypeDef *hi2c, short *acc);
-void getMagnetometer(I2C_HandleTypeDef *hi2c, short *mag);
-void getGyroscope(I2C_HandleTypeDef *hi2c, short *gyr);
-void getEuler(I2C_HandleTypeDef *hi2c, short *euler);
+void getCalibrationStatus(I2C_HandleTypeDef *hi2c, uint8_t *cal_status);
+void getCalibrationProfile(I2C_HandleTypeDef *hi2c, bno055_t *bno055);
+void setCalibrationProfile(I2C_HandleTypeDef *hi2c, bno055_t *bno055);
+void SaveCalibrationProfile(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef* hrtc, bno055_t *bno055);
+uint8_t LoadCalibrationProfile(RTC_HandleTypeDef* hrtc, uint16_t *cal_profile);
 
-void getAxisMap(I2C_HandleTypeDef *hi2c, uint8_t* axis);
-void setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis);
+void getEuler(I2C_HandleTypeDef *hi2c, short *euler_data);
 
-void getAxisSign(I2C_HandleTypeDef *hi2c, uint8_t* sign);
-void setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign);
-
-void getCalibrationStatus(I2C_HandleTypeDef *hi2c, uint8_t* cal_status);
-uint8_t getCalibrationProfile(I2C_HandleTypeDef *hi2c, uint8_t* cal_status, uint16_t *cal_profile);
-void saveCalibrationProfile(RTC_HandleTypeDef* hrtc, uint16_t *cal_profile);
-void loadCalibrationProfile(RTC_HandleTypeDef* hrtc, uint16_t *cal_profile);
-
-void ChangeOperationModeTo(I2C_HandleTypeDef *hi2c, uint8_t opmode);
-
-
+//void getAcceleration(I2C_HandleTypeDef *hi2c, short *acc);
+//void getMagnetometer(I2C_HandleTypeDef *hi2c, short *mag);
+//void getGyroscope(I2C_HandleTypeDef *hi2c, short *gyr);
+//void getAxisMap(I2C_HandleTypeDef *hi2c, uint8_t* axis);
+//void setAxisMap(I2C_HandleTypeDef *hi2c, uint8_t axis);
+//void getAxisSign(I2C_HandleTypeDef *hi2c, uint8_t* sign);
+//void setAxisSign(I2C_HandleTypeDef *hi2c, uint8_t sign);
 
 #endif /* INC_BNO_055_H_ */

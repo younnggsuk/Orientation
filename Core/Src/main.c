@@ -20,19 +20,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "bno_055.h"
-
-#include "stm32746g_discovery.h"
-#include "stm32746g_discovery_lcd.h"
-
+#include "lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,24 +32,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RGB565_BLACK       0x0000      /*   0,   0,   0 */
-#define RGB565_NAVY        0x000F      /*   0,   0, 128 */
-#define RGB565_DARKGREEN   0x03E0      /*   0, 128,   0 */
-#define RGB565_DARKCYAN    0x03EF      /*   0, 128, 128 */
-#define RGB565_MAROON      0x7800      /* 128,   0,   0 */
-#define RGB565_PURPLE      0x780F      /* 128,   0, 128 */
-#define RGB565_OLIVE       0x7BE0      /* 128, 128,   0 */
-#define RGB565_LIGHTGREY   0xC618      /* 192, 192, 192 */
-#define RGB565_DARKGREY    0x7BEF      /* 128, 128, 128 */
-#define RGB565_BLUE        0x001F      /*   0,   0, 255 */
-#define RGB565_GREEN       0x07E0      /*   0, 255,   0 */
-#define RGB565_CYAN        0x07FF      /*   0, 255, 255 */
-#define RGB565_RED         0xF800      /* 255,   0,   0 */
-#define RGB565_MAGENTA     0xF81F      /* 255,   0, 255 */
-#define RGB565_YELLOW      0xFFE0      /* 255, 255,   0 */
-#define RGB565_WHITE       0xFFFF      /* 255, 255, 255 */
-#define RGB565_ORANGE      0xFD20      /* 255, 165,   0 */
-#define RGB565_GREENYELLOW 0xAFE5      /* 173, 255,  47 */
 
 /* USER CODE END PD */
 
@@ -117,7 +90,6 @@ static void MX_DMA2D_Init(void);
 static void MX_FMC_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C3_Init(void);
-static void MX_LTDC_Init(void);
 static void MX_QUADSPI_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SAI2_Init(void);
@@ -132,12 +104,14 @@ static void MX_TIM8_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_LTDC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 int _write(int32_t file, uint8_t *ptr, int32_t len) {
   HAL_UART_Transmit(&huart1, ptr, len, 10);
   return len;
@@ -153,27 +127,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-  uint8_t chip_id = 0;
-  uint8_t cal_status[4] = {0,};
-  uint16_t cal_profile[11] = {0,};
-
-  char str_opmode[20] = {0,};
-
-  short euler_data[3] = {0,};
-
-  char str_heading[20] = {0,};
-  char str_roll[20] = {0,};
-  char str_pitch[20] = {0,};
-
-  char str_acc[20] = {0,};
-  char str_gyr[20] = {0,};
-  char str_mag[20] = {0,};
-
-  char str_cal_offset_acc[40] = {0,};
-  char str_cal_offset_mag[40] = {0,};
-  char str_cal_offset_gyr[40] = {0,};
-  char str_cal_radius_acc[40] = {0,};
-  char str_cal_radius_mag[40] = {0,};
+  bno055_t bno055;
 
   /* USER CODE END 1 */
   
@@ -202,7 +156,6 @@ int main(void)
   MX_FMC_Init();
   MX_I2C1_Init();
   MX_I2C3_Init();
-//  MX_LTDC_Init();
   MX_QUADSPI_Init();
   MX_RTC_Init();
   MX_SAI2_Init();
@@ -217,81 +170,26 @@ int main(void)
   MX_TIM12_Init();
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
+//  MX_LTDC_Init();
   /* USER CODE BEGIN 2 */
 
-  BSP_LCD_Init();
-
-  BSP_LCD_LayerRgb565Init(0, LCD_FB_START_ADDRESS);
-  BSP_LCD_DisplayOn();
-  BSP_LCD_SelectLayer(0);
-  BSP_LCD_SetTransparency(0, 255);
-  BSP_LCD_Clear(RGB565_BLACK);
-
-  BSP_LCD_SetTextColor(RGB565_WHITE);
-  BSP_LCD_SetBackColor(RGB565_BLACK);
-  BSP_LCD_SetFont(&Font24);
-
-  BSP_LCD_DisplayStringAt(0, 110, (uint8_t *)"Device Initializing...", CENTER_MODE);
-  while(1) {
-	  getChipId(&hi2c1, &chip_id);
-	  if(chip_id == BNO_055_CHIP_ID) {
-		  break;
-	  }
-	  HAL_Delay(100);
-  }
-
-  loadCalibrationProfile(&hrtc, cal_profile);
-  // OFFSET, radius write
-  ChangeOperationModeTo(&hi2c1, OP_MODE_NDOF);
+  LCD_Initialization();
+  BNO055_Initialization(&hi2c1, &hrtc, &bno055);
 
   /* USER CODE END 2 */
-
+ 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	BSP_LCD_Clear(RGB565_BLACK);
-	BSP_LCD_SetFont(&Font24);
-	BSP_LCD_DisplayStringAt(0, 0, (uint8_t *)"BNO 055", CENTER_MODE);
+	BNO055_Update(&hi2c1, &bno055);
+	DrawAll(&bno055);
 
-    BSP_LCD_SetFont(&Font16);
-	getOperationModeStr(&hi2c1, str_opmode);
-	BSP_LCD_DisplayStringAt(0, 50, (uint8_t*)str_opmode, LEFT_MODE);
-
-	getEuler(&hi2c1, euler_data);
-	sprintf(str_heading, "Heading %4d", euler_data[0]);
-	sprintf(str_roll, "Roll    %4d", euler_data[1]);
-	sprintf(str_pitch, "Pitch   %4d", euler_data[2]);
-
-	BSP_LCD_DisplayStringAt(0, 70, (uint8_t*)str_heading, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 90, (uint8_t*)str_roll, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 110, (uint8_t*)str_pitch, LEFT_MODE);
-
-	getCalibrationStatus(&hi2c1, cal_status);
-	sprintf(str_acc, "ACC %d", cal_status[1]);
-	sprintf(str_mag, "MAG %d", cal_status[0]);
-	sprintf(str_gyr, "GYR %d", cal_status[2]);
-
-	BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)str_acc, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(70, 130, (uint8_t*)str_mag, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(140, 130, (uint8_t*)str_gyr, LEFT_MODE);
-
-	BSP_LCD_SetFont(&Font12);
-
-	sprintf(str_cal_offset_acc, "A_OFFSET X %d, Y %d, Z %d", (short)cal_profile[0], (short)cal_profile[1], (short)cal_profile[2]);
-	sprintf(str_cal_offset_mag, "M_OFFSET X %d, Y %d, Z %d", (short)cal_profile[3], (short)cal_profile[4], (short)cal_profile[5]);
-	sprintf(str_cal_offset_gyr, "G_OFFSET X %d, Y %d, Z %d", (short)cal_profile[6], (short)cal_profile[7], (short)cal_profile[8]);
-	sprintf(str_cal_radius_acc, "A_RADIUS %d", (short)cal_profile[9]);
-	sprintf(str_cal_radius_mag, "M_RADIUS %d", (short)cal_profile[10]);
-
-	BSP_LCD_DisplayStringAt(0, 150, (uint8_t*)str_cal_offset_acc, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 170, (uint8_t*)str_cal_offset_mag, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 190, (uint8_t*)str_cal_offset_gyr, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 210, (uint8_t*)str_cal_radius_acc, LEFT_MODE);
-	BSP_LCD_DisplayStringAt(0, 230, (uint8_t*)str_cal_radius_mag, LEFT_MODE);
-
-	if(getCalibrationProfile(&hi2c1, cal_status, cal_profile)) {
-		saveCalibrationProfile(&hrtc, cal_profile);
+	if (HAL_GPIO_ReadPin(GPIOI, GPIO_PIN_11) == 1) {
+		BSP_LCD_Clear(RGB565_BLACK);
+		BSP_LCD_SetFont(&Font24);
+		BSP_LCD_DisplayStringAt(0, 110, (uint8_t *)"Saving Calibration Profile...", CENTER_MODE);
+		SaveCalibrationProfile(&hi2c1, &hrtc, &bno055);
 	}
 
 	HAL_Delay(1000);
@@ -609,6 +507,7 @@ static void MX_LTDC_Init(void)
   /* USER CODE END LTDC_Init 0 */
 
   LTDC_LayerCfgTypeDef pLayerCfg = {0};
+  LTDC_LayerCfgTypeDef pLayerCfg1 = {0};
 
   /* USER CODE BEGIN LTDC_Init 1 */
 
@@ -634,21 +533,40 @@ static void MX_LTDC_Init(void)
     Error_Handler();
   }
   pLayerCfg.WindowX0 = 0;
-  pLayerCfg.WindowX1 = 480;
+  pLayerCfg.WindowX1 = 0;
   pLayerCfg.WindowY0 = 0;
-  pLayerCfg.WindowY1 = 272;
-  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
-  pLayerCfg.Alpha = 255;
+  pLayerCfg.WindowY1 = 0;
+  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
+  pLayerCfg.Alpha = 0;
   pLayerCfg.Alpha0 = 0;
-  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
-  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
-  pLayerCfg.FBStartAdress = 0xC0000000;
-  pLayerCfg.ImageWidth = 480;
-  pLayerCfg.ImageHeight = 272;
+  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
+  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
+  pLayerCfg.FBStartAdress = 0;
+  pLayerCfg.ImageWidth = 0;
+  pLayerCfg.ImageHeight = 0;
   pLayerCfg.Backcolor.Blue = 0;
   pLayerCfg.Backcolor.Green = 0;
   pLayerCfg.Backcolor.Red = 0;
   if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pLayerCfg1.WindowX0 = 0;
+  pLayerCfg1.WindowX1 = 0;
+  pLayerCfg1.WindowY0 = 0;
+  pLayerCfg1.WindowY1 = 0;
+  pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
+  pLayerCfg1.Alpha = 0;
+  pLayerCfg1.Alpha0 = 0;
+  pLayerCfg1.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
+  pLayerCfg1.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
+  pLayerCfg1.FBStartAdress = 0;
+  pLayerCfg1.ImageWidth = 0;
+  pLayerCfg1.ImageHeight = 0;
+  pLayerCfg1.Backcolor.Blue = 0;
+  pLayerCfg1.Backcolor.Green = 0;
+  pLayerCfg1.Backcolor.Red = 0;
+  if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg1, 1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1596,6 +1514,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PI11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LCD_INT_Pin */
   GPIO_InitStruct.Pin = LCD_INT_Pin;
