@@ -31,7 +31,7 @@
 #define RGB565_ORANGE      0xFD20      /* 255, 165,   0 */
 #define RGB565_GREENYELLOW 0xAFE5      /* 173, 255,  47 */
 
-void LCD_Initialization();
+void LCD_Init();
 void DrawAll(bno055_t *bno055);
 
 void DrawTitle();

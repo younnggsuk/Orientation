@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void LCD_Initialization() {
+void LCD_Init() {
 	BSP_LCD_Init();
 
 	BSP_LCD_LayerRgb565Init(0, LCD_FB_START_ADDRESS);

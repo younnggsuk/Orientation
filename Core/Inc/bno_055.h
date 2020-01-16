@@ -197,7 +197,7 @@ typedef struct {
 HAL_StatusTypeDef readData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, uint8_t len);
 HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data, size_t data_len);
 
-void BNO055_Initialization(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno055_t *bno055);
+void BNO055_Init(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno055_t *bno055);
 void BNO055_Update(I2C_HandleTypeDef *hi2c, bno055_t *bno055);
 
 void getChipId(I2C_HandleTypeDef *hi2c, uint8_t *chip_id);

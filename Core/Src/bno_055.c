@@ -50,7 +50,7 @@ HAL_StatusTypeDef writeData(I2C_HandleTypeDef *hi2c, uint8_t reg, uint8_t *data,
 	return status;
 }
 
-void BNO055_Initialization(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno055_t *bno055) {
+void BNO055_Init(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno055_t *bno055) {
 	while(1) {
 		getChipId(hi2c, &(bno055->chip_id));
 		if(bno055->chip_id == BNO_055_CHIP_ID) {
@@ -64,8 +64,8 @@ void BNO055_Initialization(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno
 		setCalibrationProfile(hi2c, bno055);
 	}
 	else {
-		memset(bno055->cal_status, 0, 4);
-		memset(bno055->cal_profile, 0, 22);
+		memset(bno055->cal_status, '\0', 4);
+		memset(bno055->cal_profile, '\0', 22);
 	}
 
 	memset(bno055->euler_data, 0, 6);
@@ -76,7 +76,7 @@ void BNO055_Initialization(I2C_HandleTypeDef *hi2c, RTC_HandleTypeDef *hrtc, bno
 void BNO055_Update(I2C_HandleTypeDef *hi2c, bno055_t *bno055) {
 	getEuler(hi2c, bno055->euler_data);
 	getCalibrationStatus(hi2c, bno055->cal_status);
-	getCalibrationProfile(hi2c, bno055);
+//	getCalibrationProfile(hi2c, bno055);
 }
 
 void getChipId(I2C_HandleTypeDef *hi2c, uint8_t *chip_id) {

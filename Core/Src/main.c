@@ -22,8 +22,11 @@
 #include "main.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "bno_055.h"
 #include "lcd.h"
+#include "nmea.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SENTENCE_MAX	20
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -173,8 +176,8 @@ int main(void)
 //  MX_LTDC_Init();
   /* USER CODE BEGIN 2 */
 
-  LCD_Initialization();
-  BNO055_Initialization(&hi2c1, &hrtc, &bno055);
+  LCD_Init();
+  BNO055_Init(&hi2c1, &hrtc, &bno055);
 
   /* USER CODE END 2 */
  
@@ -192,6 +195,7 @@ int main(void)
 		SaveCalibrationProfile(&hi2c1, &hrtc, &bno055);
 	}
 
+	GenerateNMEA0183Heading(bno055.euler_data[0]);
 	HAL_Delay(1000);
     /* USER CODE END WHILE */
 
